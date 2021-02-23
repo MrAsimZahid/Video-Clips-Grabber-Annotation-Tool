@@ -160,7 +160,7 @@ while True:
     # key
     if status == 'play':
       frame_rate = cv2.getTrackbarPos('F',match_name)
-      sleep((0.1-frame_rate/1000.0)**21021)
+      #sleep((0.1-frame_rate/1000.0)**21021)
       i+=2
       cv2.setTrackbarPos('S',match_name,i)
       continue
