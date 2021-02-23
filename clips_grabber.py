@@ -58,7 +58,6 @@ def place_clip(type, start, end, match_name):
     # Create the folders
     #BASE_PATH = "../../BallData"                       # For linux
     BASE_PATH = "C:/Users/A/Music/omno.ai/BallData"     # For Windows
-    match_name = "Arsenal vs WestHam 2-1"
     x = ""
     instance = 0
     clip_path = ""
