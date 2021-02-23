@@ -90,8 +90,8 @@ match_name = video[:-4]
 print(match_name)
 
 
-cv2.namedWindow('image')
-cv2.moveWindow('image',250,150)
+cv2.namedWindow(match_name)
+cv2.moveWindow(match_name,250,150)
 cv2.namedWindow('controls')
 cv2.moveWindow('controls',250,50)
 
@@ -107,12 +107,12 @@ cap = cv2.VideoCapture(video)
 
 tots = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 i = 0
-cv2.createTrackbar('S','image', 0,int(tots)-1, flick)
-cv2.setTrackbarPos('S','image',0)
+cv2.createTrackbar('S',match_name, 0,int(tots)-1, flick)
+cv2.setTrackbarPos('S',match_name,0)
 
-cv2.createTrackbar('F','image', 1, 100, flick)
+cv2.createTrackbar('F',match_name, 1, 100, flick)
 frame_rate = 30
-cv2.setTrackbarPos('F','image',frame_rate)
+cv2.setTrackbarPos('F',match_name,frame_rate)
 
 def process(im):
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -143,7 +143,7 @@ while True:
         im = cv2.resize(im, (500,500))
         controls = cv2.resize(controls, (im.shape[1],25))
     #cv2.putText(im, status, )
-    cv2.imshow('image', im)
+    cv2.imshow(match_name, im)
     status = { ord('s'):'stay', ord('S'):'stay',
                 ord('w'):'play', ord('W'):'play',
                 ord('a'):'prev_frame', ord('A'):'prev_frame',
@@ -156,34 +156,34 @@ while True:
                 ord('t'):'timestamp', ord('T'):'timestamp',
                 ord('n'):'clear_time', ord('N'):'clear_time',
                 -1: status, 
-                27: 'exit'}[cv2.waitKey(10)]
+                27: 'exit'}[cv2.waitKey(1)]
 
     # key
     if status == 'play':
-      frame_rate = cv2.getTrackbarPos('F','image')
+      frame_rate = cv2.getTrackbarPos('F',match_name)
       sleep((0.1-frame_rate/1000.0)**21021)
-      i+=1
-      cv2.setTrackbarPos('S','image',i)
+      i+=2
+      cv2.setTrackbarPos('S',match_name,i)
       continue
     if status == 'stay':
-      i = cv2.getTrackbarPos('S','image')
+      i = cv2.getTrackbarPos('S',match_name)
     if status == 'exit':
         break
     if status=='prev_frame':
         i-=1
-        cv2.setTrackbarPos('S','image',i)
+        cv2.setTrackbarPos('S',match_name,i)
         status='stay'
     if status=='next_frame':
         i+=1
-        cv2.setTrackbarPos('S','image',i)
+        cv2.setTrackbarPos('S',match_name,i)
         status='stay'
     if status=='slow':
         frame_rate = max(frame_rate - 5, 0)
-        cv2.setTrackbarPos('F', 'image', frame_rate)
+        cv2.setTrackbarPos('F', match_name, frame_rate)
         status='play'
     if status=='fast':
         frame_rate = min(100,frame_rate+5)
-        cv2.setTrackbarPos('F', 'image', frame_rate)
+        cv2.setTrackbarPos('F', match_name, frame_rate)
         status='play'
     if status=='snap':
         cv2.imwrite("./"+"Snap_"+str(i)+".jpg",im)
@@ -192,10 +192,10 @@ while True:
     if status=='timestamp':
         if start is None:
             start = time_converter(current_time(cap))
-            print(f"Time extracted: {start}")
+            print(f"Start time extracted: {start}")
         else:
             end = time_converter(current_time(cap))
-            print(f"Time extracted: {end}")
+            print(f"End time extracted: {end}")
         status='stay'
     if status=='in Air':
         if start is None or end is None:
@@ -221,4 +221,4 @@ while True:
 
   except KeyError:
       print("Invalid Key was pressed")
-cv2.destroyWindow('image')
+cv2.destroyWindow(match_name)
