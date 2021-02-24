@@ -40,10 +40,10 @@ def time_converter(milliseconds):
         hours = minutes//60
         minutes = minutes % 60
     
-    return str(f"{int(hours)}:{int(minutes)}:{int(seconds)}.{int(milliseconds)}")
+    return str(f"{int(hours)}:{int(minutes)}:{int(seconds)}.{int(milliseconds)}"), (int(seconds))
 
 
-def place_clip(type, start, end, match_name):
+def extract_clip(type, start, end, match_name, clip_duration):
     '''
     Ojectives:
     1) Create directories
@@ -73,13 +73,66 @@ def place_clip(type, start, end, match_name):
             print(error)  
         print("clip_path")
         print(clip_path)
-        os.system(f"ffmpeg -ss {start} -i \"{match_name}.mp4\" -to {end} -c copy \"{clip_path}/{instance}.mp4\"")
+        #-c:v copy -c:a copy
+        #f"ffmpeg -i \"{match_name}.mp4\" -ss {start} -to {end} -async 1 -strict -2 -c:v copy -c:a copy \"{clip_path}/{instance}.mp4\""
+        #-codec copy -t 20
+        # f"ffmpeg -i \"{match_name}.mp4\" -ss {start} -codec copy -t {clip_duration} \"{clip_path}/{instance}.mp4\""
+        os.system(f"ffmpeg -i \"{match_name}.mp4\" -ss {start} -codec copy -t {end} \"{clip_path}/{instance}.mp4\"")
         return
     else:
         print("else part")
         clip_path = os.path.exists(os.path.join(x, instance))
-        os.system(f"ffmpeg -ss {start} -i \"{match_name}.mp4\" -to {end} -c copy \"{clip_path}/{instance}.mp4\"")
-    
+        os.system(f"ffmpeg -i \"{match_name}.mp4\" -ss {start} -codec copy -t {end} \"{clip_path}/{instance}.mp4\"")
+
+
+def extract_frames(cap, start, end, type, match_name):
+    '''
+    get start frame
+    get last frame
+    difference between frames
+    set frame to required flag
+    run untill reach end of loop
+    exit
+    '''
+    # Create the folders
+    #BASE_PATH = "../../BallData"                       # For linux
+    BASE_PATH = "C:/Users/A/Music/omno.ai/BallData"     # For Windows
+    x = ""
+    instance = 0
+    clip_path = ""
+    count = 1
+    frame_diff = (end - start) + 1
+    if not os.path.exists(os.path.join(BASE_PATH, match_name, type)):
+        os.makedirs(os.path.join(BASE_PATH, match_name, type))
+    instance = str((len(next(os.walk(os.path.join(BASE_PATH, match_name, type)))[1]) + 1))
+    x = os.path.join(BASE_PATH, match_name, type)
+    if not os.path.exists(os.path.join(x, instance)):
+        try:  
+            os.mkdir(os.path.join(x, instance))
+            clip_path = os.path.join(x, instance)  
+        except OSError as error:  
+            print(error)  
+        print("clip_path")
+        print(clip_path)
+        while count != frame_diff:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+            _, frame = cap.read()
+            cv2.imwrite(f"{clip_path}/"+str(count)+".jpg", frame)
+            start += 1
+            count += 1
+        print(f"{frame_diff} frames extracted")
+        return
+    else:
+        print("else part")
+        clip_path = os.path.exists(os.path.join(x, instance))
+        while count != frame_diff:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+            _, frame = cap.read()
+            cv2.imwrite(f"{clip_path}/"+str(count)+".jpg", frame)
+            start += 1
+            count += 1
+        print(f"{frame_diff} frames extracted")
+        return
 
 def flick(x):
     pass
@@ -190,27 +243,35 @@ while True:
         status='stay'
     if status=='timestamp':
         if start is None:
-            start = time_converter(current_time(cap))
+            start = i
+            #start, str_sec = time_converter(current_time(cap))
+            #start = str(int(current_time(cap))) + 'ms'
             print(f"Start time extracted: {start}")
         else:
-            end = time_converter(current_time(cap))
+            end = i
+            #end, end_sec = time_converter(current_time(cap))
+            #end = str(int(current_time(cap))) + 'ms'
             print(f"End time extracted: {end}")
         status='stay'
     if status=='in Air':
         if start is None or end is None:
             print("Please select start and end time")
         else:
-            place_clip(status, start, end, match_name)
+            #clip_duration = end_sec - str_sec
+            #extract_clip(status, start, end, match_name, clip_duration)
+            extract_frames(cap, start, end, status, match_name)
             start, end = None, None
-            print("In Air Clip extracted")
+            print("In Air frames extracted")
         status='stay'
     if status=='rolling':
         if start is None or end is None:
             print("Please select start and end time")
         else:
-            place_clip(status, start, end, match_name)
+            #clip_duration = end_sec - str_sec
+            #extract_clip(status, start, end, match_name, clip_duration)
+            extract_frames(cap, start, end, status, match_name)
             start, end = None, None
-            print("Rolling Clip extracted")
+            print("Rolling frames extracted")
         status='stay'
     if status=='clear_time':
         start = None
